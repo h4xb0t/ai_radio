@@ -1,7 +1,3 @@
-Below is the developer documentation for the "Fallout Terminal" project, formatted in **GitHub-flavored Markdown** with full linking and a proper table of contents. This version includes clickable links within the table of contents, external references to relevant resources, and code blocks styled for GitHub readability. It’s tailored for developers and optimized for inclusion in a GitHub repository, ensuring it’s comprehensive and easy to navigate.
-
----
-
 # Fallout Terminal Developer Documentation - v1.4
 
 ## Table of Contents
