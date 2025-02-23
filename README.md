@@ -234,5 +234,3 @@ The Fallout Terminal follows a modular design:
 - **Profiles**: Support per-user configurations with a JSON-based user database.
 
 ---
-
-This GitHub-flavored Markdown version provides a detailed, clickable, and developer-friendly guide for the Fallout Terminal project at version 1.4. It’s ready to be hosted in a GitHub repository, offering a robust foundation for maintenance and extension by any developer. Links to external resources enhance its utility, ensuring accessibility and clarity.
