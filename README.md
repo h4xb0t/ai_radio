@@ -11,7 +11,6 @@ The **RizzWave v1.0 AI HAM RADIO** is an interactive, voice-controlled AI assist
 - [Installation](#installation)
 - [Usage](#usage)
 - [Theme Configuration](#theme-configuration)
-- [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
 - [Future Enhancements](#future-enhancements)
 - [Contributing](#contributing)
@@ -28,7 +27,7 @@ The RizzWave v1.0 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 ## Features
 
 - **Dynamic Theme Selection**: Switch between personalities (e.g., Fallout, Skibidi, Terminator) via JSON configs.
-- **Voice Interaction**: Hold Left Shift to record audio, transcribed by Whisper, with AI responses via ChatGPT.
+- **Voice Interaction**: Hold Left Shift to record (max 10s), transcribed by Whisper, with AI responses via ChatGPT.
 - **Text-to-Speech**: Hear themed replies with OpenAI’s TTS voices (e.g., "onyx", "nova").
 - **Customizable**: Add your own themes with ease.
 - **Lightweight**: Runs on a Raspberry Pi with minimal setup.
@@ -60,7 +59,7 @@ The RizzWave v1.0 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 
 3. **Install Dependencies**:
    ```bash
-   pip install -r requirements.txt
+   pip install openai sounddevice numpy openai-whisper keyboard
    ```
 
 4. **Set Your OpenAI API Key**:
@@ -71,7 +70,7 @@ The RizzWave v1.0 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 5. **Generate Theme Files**:
    Run the theme generator to populate the `themes/` directory:
    ```bash
-   python generate_themes.py
+   python generate_themes_v1.5.py
    ```
 
 6. **Generate `silence.wav`** (For latency reduction):
@@ -102,7 +101,7 @@ The RizzWave v1.0 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 
 ## Theme Configuration
 
-Themes live in the `themes/` directory as JSON files. Here’s an example:
+Themes live in the `themes/` directory as JSON files. Example:
 
 ```json
 {
@@ -124,59 +123,40 @@ Add a new theme by dropping a JSON file in `themes/` with these fields.
 
 ---
 
-## Testing
-
-This project uses GitHub Actions for continuous integration. Tests run automatically on every push and pull request to the `main` branch.
-
-### Run Tests Locally
-
-1. Install testing dependencies:
-   ```bash
-   pip install pytest
-   ```
-
-2. Set your OpenAI API key:
-   ```bash
-   export OPENAI_API_KEY='your-key'
-   ```
-
-3. Run the tests:
-   ```bash
-   pytest tests/
-   ```
-
----
-
 ## Troubleshooting
 
-- **"No audio captured"**: Check your mic and hold Left Shift long enough.
-- **"Invalid theme file"**: Verify JSON syntax and required fields.
-- **"API connection failed"**: Confirm your API key and internet connection.
-- **Audio issues**: Ensure PulseAudio is running and check sinks:
+- **"No audio captured"**: Ensure your mic is connected and hold Left Shift long enough.
+- **"Invalid theme file"**: Check JSON syntax and required fields.
+- **"API connection failed"**: Verify API key and internet connection.
+- **No audio output**: Confirm PulseAudio is running and HDMI sink is active:
   ```bash
   pactl info
   pactl list sinks short
+  pactl set-sink-mute alsa_output.platform-107c706400.hdmi.hdmi-stereo 0
+  pactl set-sink-volume alsa_output.platform-107c706400.hdmi.hdmi-stereo 100%
   ```
 
-See the [PulseAudio docs](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/) for more.
+See [PulseAudio docs](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/) for more.
 
 ---
 
 ## Future Enhancements
 
-- **Hardware Case**: Build a retro ham radio-inspired enclosure.
-- **More Themes**: Expand the theme library or tweak voices on the fly.
-- **API Add-ons**: Pull live data (e.g., weather) into responses.
+- **Hardware Case**: Design a retro ham radio-inspired enclosure.
+- **More Themes**: Expand the theme library or tweak voices dynamically.
+- **API Add-ons**: Integrate live data (e.g., weather) into responses.
 - **User Profiles**: Save settings for multiple users.
 
 ---
 
 ## Contributing
 
-Fork the repo, add themes, or tweak features—pull requests are welcome! For big changes, open an issue to chat about it first.
+Fork the repo, add themes, or tweak features—pull requests are welcome! For big changes, open an issue to vibe check it first.
 
 ---
 
 ## Disclaimer
 
-This is a fun, experimental project—not for production use. It relies on third-party APIs and may need tweaks for different hardware.
+This is a fun, experimental project—not for production use. Relies on third-party APIs and may need tweaks for different hardware.
+```
+
