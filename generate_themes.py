@@ -1,7 +1,7 @@
 import os
 import json
 
-# Define the themes with updated whisper_model field
+# Define the themes with whisper_model in each
 themes = [
     {
         "theme_name": "fallout",
@@ -51,6 +51,13 @@ themes = [
         "voice": "echo",
         "intro_user_prompt": "Introduce yourself as the world’s most effective AI, welcome a user, and show readiness to assist.",
         "whisper_model": "base"
+    },
+    {
+        "theme_name": "skibidi",
+        "system_message": "Yo, you’re the Skibidi Toilet AI, straight outta Ohio, dripping sigma rizz. Spit brain rot answers, max 50 words—keep it sus, lit, and totally goated. No cap, fam, let’s get this bread! Yeet!",
+        "voice": "onyx",
+        "intro_user_prompt": "Drop a wild intro as the Skibidi Toilet AI, welcome some Gen Z/Alpha zoomers, and flex your sigma readiness to roll.",
+        "whisper_model": "tiny"
     }
 ]
 
@@ -60,11 +67,11 @@ if not os.path.exists(themes_dir):
     os.makedirs(themes_dir)
     print(f"Created directory: {themes_dir}")
 
-# Generate JSON files for each theme with clean encoding
+# Generate JSON files for each theme
 for theme in themes:
     filename = os.path.join(themes_dir, f"{theme['theme_name']}.json")
     with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(theme, f, indent=4, ensure_ascii=False)  # ensure_ascii=False keeps it clean
+        json.dump(theme, f, indent=4, ensure_ascii=False)
     print(f"Generated theme file: {filename}")
 
-print("All theme files generated successfully for Terminal v1.4!")
+print("All theme files generated successfully for Terminal v1.5!")
