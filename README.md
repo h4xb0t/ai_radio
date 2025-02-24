@@ -71,7 +71,7 @@ The RizzWave v1.0 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 5. **Generate Theme Files**:
    Run the theme generator to populate the `themes/` directory:
    ```bash
-   python generate_themes_v1.5.py
+   python generate_themes.py
    ```
 
 6. **Generate `silence.wav`** (For latency reduction):
