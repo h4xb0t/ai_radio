@@ -1,236 +1,182 @@
-# Fallout Terminal Developer Documentation - v1.4
+# RizzWave v1.0 AI HAM RADIO
+
+The **RizzWave v1.0 AI HAM RADIO** is an interactive, voice-controlled AI assistant inspired by ham radio vibes and Gen Z/Alpha culture. Built in Python for a Raspberry Pi, it uses OpenAI’s APIs for speech-to-text (Whisper), text-to-text (ChatGPT), and text-to-speech (TTS). Customize the AI’s personality with dynamic themes loaded from JSON files.
+
+---
 
 ## Table of Contents
 
-- [1. Project Overview](#1-project-overview)
-- [2. Architecture](#2-architecture)
-- [3. Components](#3-components)
-  - [Theme System](#theme-system)
-  - [Audio Processing](#audio-processing)
-  - [Key Event Handling](#key-event-handling)
-  - [Error Handling](#error-handling)
-- [4. Configurations](#4-configurations)
-  - [Theme Configuration](#theme-configuration)
-  - [Environment Variables](#environment-variables)
-- [5. Installation and Setup](#5-installation-and-setup)
-  - [Dependencies](#dependencies)
-  - [Hardware Configuration](#hardware-configuration)
-  - [Generating `silence.wav`](#generating-silencewav)
-- [6. Usage](#6-usage)
-  - [Running the Script](#running-the-script)
-  - [Interacting with the Terminal](#interacting-with-the-terminal)
-- [7. Development Guidelines](#7-development-guidelines)
-  - [Adding New Themes](#adding-new-themes)
-  - [Customizing Audio Settings](#customizing-audio-settings)
-  - [Debugging Tips](#debugging-tips)
-- [8. Troubleshooting](#8-troubleshooting)
-- [9. Future Enhancements](#9-future-enhancements)
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Theme Configuration](#theme-configuration)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+- [Future Enhancements](#future-enhancements)
+- [Contributing](#contributing)
+- [Disclaimer](#disclaimer)
 
 ---
 
-## 1. Project Overview
+## Project Overview
 
-The **Fallout Terminal** is an interactive, voice-controlled AI assistant inspired by themed experiences (e.g., *Fallout*, *Barbie*, *Terminator*). Built in [Python](https://www.python.org/), it runs on a [Raspberry Pi](https://www.raspberrypi.org/) and leverages [OpenAI APIs](https://openai.com/api/) for **speech-to-text (STT)**, **text-to-text AI (ChatGPT)**, and **text-to-speech (TTS)**. The project supports a dynamic theme system, allowing developers to customize the AI's personality, voice, and behavior via JSON files.
-
-This documentation equips developers with the knowledge to maintain, extend, and debug the application, serving as a comprehensive resource for both current and future contributors.
+The RizzWave v1.0 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI terminal with a twist—retro ham radio flair meets modern AI. Pick a theme like a Fallout survivor or Skibidi Toilet AI, and chat using push-to-talk. It’s a wild, fun experiment for tinkerers and AI enthusiasts.
 
 ---
 
-## 2. Architecture
+## Features
 
-The Fallout Terminal follows a modular design:
-
-- **Theme System**: Loads configurations from JSON files in the `themes/` directory to define the AI’s personality and settings.
-- **Audio Input**: Captures voice via [sounddevice](https://python-sounddevice.readthedocs.io/), transcribed using [Whisper](https://github.com/openai/whisper).
-- **AI Interaction**: Processes transcriptions with [ChatGPT](https://openai.com/research/chatgpt) for themed responses.
-- **Audio Output**: Converts responses to speech with OpenAI TTS, played via `paplay`.
-- **Key Event Handling**: Uses the [keyboard](https://github.com/boppreh/keyboard) library to manage user interactions.
+- **Dynamic Theme Selection**: Switch between personalities (e.g., Fallout, Skibidi, Terminator) via JSON configs.
+- **Voice Interaction**: Hold Left Shift to record audio, transcribed by Whisper, with AI responses via ChatGPT.
+- **Text-to-Speech**: Hear themed replies with OpenAI’s TTS voices (e.g., "onyx", "nova").
+- **Customizable**: Add your own themes with ease.
+- **Lightweight**: Runs on a Raspberry Pi with minimal setup.
 
 ---
 
-## 3. Components
+## Installation
 
-### Theme System
+### Prerequisites
 
-- **Purpose**: Defines the AI’s personality, TTS voice, and STT model.
-- **Implementation**: Each theme is a JSON file in `themes/` with the following structure:
-  ```json
-  {
-      "theme_name": "Fallout",
-      "system_message": "You are a gritty Fallout terminal AI.",
-      "voice": "onyx",
-      "intro_user_prompt": "Introduce yourself as a Fallout terminal.",
-      "whisper_model": "tiny"
-  }
-  ```
-- **Key Fields**:
-  - `theme_name`: Unique identifier.
-  - `system_message`: ChatGPT behavior prompt.
-  - `voice`: TTS voice (e.g., "onyx", "nova").
-  - `intro_user_prompt`: Generates the AI’s intro.
-  - `whisper_model`: STT model (e.g., "tiny", "base").
+- Raspberry Pi (configured for user `h4xb0t`)
+- Python 3.11+
+- PulseAudio for audio playback
+- OpenAI API Key
 
-### Audio Processing
+### Setup
 
-- **Input**:
-  - Captured using `sounddevice` (16,000 Hz sample rate, 512 block size).
-  - Optimized with pre-allocated NumPy arrays.
-- **Transcription**:
-  - Processed by Whisper with configurable model sizes.
-- **Output**:
-  - Generated via OpenAI TTS and played with `paplay`, prefixed with `silence.wav` to minimize latency.
-
-### Key Event Handling
-
-- **Library**: `keyboard` (requires `sudo` for root privileges).
-- **Controls**:
-  - **Left Shift**: Start/stop recording.
-  - `'q'`: Exit the application.
-
-### Error Handling
-
-- **Theme Validation**: Ensures JSON files include required fields and valid syntax.
-- **API Resilience**: Handles OpenAI API failures with user-friendly feedback.
-
----
-
-## 4. Configurations
-
-### Theme Configuration
-
-- **Location**: `themes/` directory.
-- **Example**:
-  ```json
-  {
-      "theme_name": "Terminator",
-      "system_message": "You are a cold, calculating Terminator AI.",
-      "voice": "alloy",
-      "intro_user_prompt": "State your designation and purpose.",
-      "whisper_model": "base"
-  }
-  ```
-
-### Environment Variables
-
-- **OpenAI API Key**:
-  ```bash
-  export OPENAI_API_KEY='your-api-key-here'
-  ```
-
----
-
-## 5. Installation and Setup
-
-### Dependencies
-
-- **Python Libraries**:
-  ```bash
-  pip install openai sounddevice numpy whisper keyboard
-  ```
-- **System Packages**:
-  - Install `sox` for silence file generation:
-    ```bash
-    sudo apt install sox
-    ```
-
-### Hardware Configuration
-
-- **Platform**: Raspberry Pi (configured for user `h4xb0t`).
-- **Audio**: Requires [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) for `paplay`.
-
-### Generating `silence.wav`
-
-- Create a 0.5-second silence file:
-  ```bash
-  sox -n -t wav silence.wav trim 0.0 0.5
-  ```
-- Place it in the script’s working directory.
-
----
-
-## 6. Usage
-
-### Running the Script
-
-- Run with `sudo` to preserve environment variables:
-  ```bash
-  sudo -E /path/to/venv/bin/python terminal_v1.4.py
-  ```
-- Select a theme from the displayed menu.
-
-### Interacting with the Terminal
-
-- **Record**: Hold **Left Shift** (max 10 seconds).
-- **Response**: Release to hear the AI’s themed reply.
-- **Exit**: Press `'q'`.
-
----
-
-## 7. Development Guidelines
-
-### Adding New Themes
-
-1. Create a new JSON file in `themes/` (e.g., `my_theme.json`).
-2. Define the required fields:
-   ```json
-   {
-       "theme_name": "my_theme",
-       "system_message": "Your custom AI behavior.",
-       "voice": "nova",
-       "intro_user_prompt": "Your intro here.",
-       "whisper_model": "tiny"
-   }
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/yourusername/rizzwave-ai-ham-radio.git
+   cd rizzwave-ai-ham-radio
    ```
-3. The theme will automatically appear in the menu.
 
-### Customizing Audio Settings
+2. **Create a Virtual Environment** (Recommended):
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-- Adjust `BLOCK_SIZE` (default: 512) or `SAMPLE_RATE` (default: 16,000 Hz) in the script:
-  ```python
-  BLOCK_SIZE = 256  # Example adjustment
-  SAMPLE_RATE = 8000  # Example adjustment
-  ```
-- Ensure Whisper compatibility with the sample rate (16,000 Hz preferred).
+3. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### Debugging Tips
+4. **Set Your OpenAI API Key**:
+   ```bash
+   export OPENAI_API_KEY='your-api-key'
+   ```
 
-- **Audio Failures**: Verify microphone setup and PulseAudio functionality with:
+5. **Generate Theme Files**:
+   Run the theme generator to populate the `themes/` directory:
+   ```bash
+   python generate_themes_v1.5.py
+   ```
+
+6. **Generate `silence.wav`** (For latency reduction):
+   ```bash
+   sudo apt install sox
+   sox -n -t wav silence.wav trim 0.0 0.5
+   ```
+
+---
+
+## Usage
+
+1. **Run the Script**:
+   Use `sudo -E` to preserve environment variables and run as root:
+   ```bash
+   sudo -E /path/to/venv/bin/python rizzwave_v1.0.py
+   ```
+
+2. **Select a Theme**:
+   Pick a theme from the list (e.g., `1. Fallout`, `7. Skibidi`).
+
+3. **Interact with the AI**:
+   - Hold **Left Shift** to record (max 10 seconds).
+   - Release to hear the AI’s themed response.
+   - Press `'q'` to quit.
+
+---
+
+## Theme Configuration
+
+Themes live in the `themes/` directory as JSON files. Here’s an example:
+
+```json
+{
+  "theme_name": "skibidi",
+  "system_message": "Yo, you’re the Skibidi Toilet AI, straight outta Ohio, dripping sigma rizz. Spit brain rot answers, max 50 words—keep it sus, lit, and totally goated. No cap, fam, let’s get this bread! Yeet!",
+  "voice": "onyx",
+  "intro_user_prompt": "Drop a wild intro as the Skibidi Toilet AI, welcome some Gen Z/Alpha zoomers, and flex your sigma readiness to roll.",
+  "whisper_model": "tiny"
+}
+```
+
+- **`theme_name`**: Unique identifier.
+- **`system_message`**: Sets the AI’s personality for ChatGPT.
+- **`voice`**: TTS voice (e.g., "onyx", "nova").
+- **`intro_user_prompt`**: Triggers the AI’s intro message.
+- **`whisper_model`**: STT model (e.g., "tiny", "base").
+
+Add a new theme by dropping a JSON file in `themes/` with these fields.
+
+---
+
+## Testing
+
+This project uses GitHub Actions for continuous integration. Tests run automatically on every push and pull request to the `main` branch.
+
+### Run Tests Locally
+
+1. Install testing dependencies:
+   ```bash
+   pip install pytest
+   ```
+
+2. Set your OpenAI API key:
+   ```bash
+   export OPENAI_API_KEY='your-key'
+   ```
+
+3. Run the tests:
+   ```bash
+   pytest tests/
+   ```
+
+---
+
+## Troubleshooting
+
+- **"No audio captured"**: Check your mic and hold Left Shift long enough.
+- **"Invalid theme file"**: Verify JSON syntax and required fields.
+- **"API connection failed"**: Confirm your API key and internet connection.
+- **Audio issues**: Ensure PulseAudio is running and check sinks:
   ```bash
   pactl info
+  pactl list sinks short
   ```
-- **API Issues**: Check API key validity and network status:
-  ```bash
-  echo $OPENAI_API_KEY
-  ping api.openai.com
-  ```
-- **Transcription Errors**: Test alternative Whisper models by editing the theme JSON:
-  ```json
-  "whisper_model": "base"
-  ```
+
+See the [PulseAudio docs](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/) for more.
 
 ---
 
-## 8. Troubleshooting
+## Future Enhancements
 
-- **"No audio captured"**: 
-  - Ensure microphone is connected and Left Shift is held long enough.
-  - Test with:
-    ```bash
-    arecord -f cd test.wav
-    ```
-- **"Invalid theme file"**: Validate JSON syntax and required fields with a linter (e.g., [JSONLint](https://jsonlint.com/)).
-- **"API connection failed"**: Confirm API key and internet connectivity.
+- **Hardware Case**: Build a retro ham radio-inspired enclosure.
+- **More Themes**: Expand the theme library or tweak voices on the fly.
+- **API Add-ons**: Pull live data (e.g., weather) into responses.
+- **User Profiles**: Save settings for multiple users.
 
 ---
 
-## 9. Future Enhancements
+## Contributing
 
-- **UI Feedback**: Add visual cues using ANSI escape codes for recording/processing states:
-  ```python
-  print("\033[31mRecording...\033[0m")  # Red text example
-  ```
-- **Dynamic Data**: Integrate external APIs (e.g., [OpenWeatherMap](https://openweathermap.org/api)) for real-time data.
-- **Voice Flexibility**: Enable runtime voice selection via a config option.
-- **Profiles**: Support per-user configurations with a JSON-based user database.
+Fork the repo, add themes, or tweak features—pull requests are welcome! For big changes, open an issue to chat about it first.
 
 ---
+
+## Disclaimer
+
+This is a fun, experimental project—not for production use. It relies on third-party APIs and may need tweaks for different hardware.
