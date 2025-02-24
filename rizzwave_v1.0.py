@@ -13,8 +13,9 @@ import json
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcribe")
 
-# Script version
-VERSION = "1.4"
+# Script version and name
+VERSION = "1.0"
+NAME = "RizzWave v1.0 AI HAM RADIO"
 
 # OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -30,15 +31,16 @@ CHANNELS = 1  # Mono audio
 # List JSON files in the themes/ directory
 theme_files = [f for f in os.listdir('themes') if f.endswith('.json')]
 themes = [os.path.splitext(f)[0] for f in theme_files]
+themes = sorted(themes)
 
 # Display available themes
 if not themes:
     print("Error: No themes found in the themes/ directory.")
     exit(1)
 
-print("Available themes:")
+print(f"{NAME} - Available themes:")
 for i, theme in enumerate(themes, 1):
-    print(f"{i}. {theme}")
+    print(f"{i}. {theme}".title())
 
 # Prompt user to select a theme
 while True:
@@ -213,7 +215,7 @@ def generate_intro():
 keyboard.hook(on_key_event)
 
 # Initial greeting with dynamic intro
-print(f"Initializing {theme_config['theme_name'].replace('_', ' ').title()} AI Terminal v{VERSION}...")
+print(f"Initializing {NAME} with {theme_config['theme_name'].replace('_', ' ').title()}...")
 time.sleep(1)
 greeting = generate_intro()
 print(f"🤖 {theme_config['theme_name'].replace('_', ' ').title()} AI: {greeting}")
@@ -230,4 +232,5 @@ if current_playback_process and current_playback_process.poll() is None:
 stream.stop()
 stream.close()
 keyboard.unhook_all()
-print(f"{theme_config['theme_name'].replace('_', ' ').title()} AI offline.")
+print(f"{NAME} offline.")
+
