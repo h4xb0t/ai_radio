@@ -33,7 +33,7 @@ The RizzWave v1.1 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 - **Weather Integration**: 
   - Real-time weather updates powered by the OpenWeatherMap API.
   - Ask naturally (e.g., "What’s the weather in 90210?")—spaCy detects the intent and extracts ZIP codes for precise, location-based data.
-  - No ZIP provided? Falls back to a default ZIP code set via an environment variable.
+  - No ZIP provided? Falls back to a default ZIP code set via the `WEATHER_ZIP` environment variable.
   - Temperature reported in Fahrenheit for that classic American radio vibe.
 - **Customizable**: Add your own themes with ease.
 - **Lightweight**: Runs on a Raspberry Pi with minimal setup.
@@ -52,11 +52,13 @@ The RizzWave v1.1 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 
 ### Setup
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/yourusername/rizzwave-ai-ham-radio.git
-   cd rizzwave-ai-ham-radio
-   ```
+1. **Download the Latest Release**:
+   - Head to the [releases page](/releases) on GitHub and grab the latest zip file.
+   - Extract it to a directory of your choice (e.g., `/home/h4xb0t/rizzwave`).
+   - Navigate to the extracted directory:
+     ```bash
+     cd /home/h4xb0t/rizzwave
+     ```
 
 2. **Create a Virtual Environment** (Recommended):
    ```bash
@@ -70,10 +72,11 @@ The RizzWave v1.1 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
    python -m spacy download en_core_web_sm
    ```
 
-4. **Set Your API Keys**:
+4. **Set Your API Keys and Default ZIP Code**:
    ```bash
    export OPENAI_API_KEY='your-openai-key'
    export OPENWEATHERMAP_API_KEY='your-openweathermap-key'
+   export WEATHER_ZIP='your-zip-code'  # e.g., '10001' for NYC—sets default weather location
    ```
 
 5. **Generate Theme Files**:
@@ -164,8 +167,6 @@ Here are some cool ideas to take RizzWave to the next level:
 - **Community Themes**: Let users upload and share themes on a public repo, growing a RizzWave creator community.
 - **AI DJ Mode**: Have the AI curate and narrate a playlist based on weather, mood, or theme, with radio-style transitions.
 - **Ham Radio Bridge**: Connect to real ham radio networks, blending vintage comms with AI responses.
-
-Feel free to trim or tweak these—there’s plenty of room to dream big!
 
 ---
 
