@@ -179,4 +179,3 @@ Fork the repo, add themes, or tweak features—pull requests are welcome! For bi
 ## Disclaimer
 
 This is a fun, experimental project—not for production use. It relies on third-party APIs and may need tweaks for different hardware.
-```
