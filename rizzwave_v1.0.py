@@ -8,6 +8,8 @@ import keyboard
 import subprocess
 import signal
 import json
+import requests
+import spacy
 
 # Suppress Whisper FP16 warning
 import warnings
@@ -17,16 +19,41 @@ warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcri
 VERSION = "1.0"
 NAME = "RizzWave v1.0 AI HAM RADIO"
 
-# OpenAI API Key
+# Load API keys from environment variables
 openai.api_key = os.getenv("OPENAI_API_KEY")
+OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
+
 if not openai.api_key:
-    print("Error: No API key set! Run: export OPENAI_API_KEY='your-key'")
+    print("Error: OPENAI_API_KEY not set! Run: export OPENAI_API_KEY='your-openai-key'")
+    exit(1)
+if not OPENWEATHERMAP_API_KEY:
+    print("Error: OPENWEATHERMAP_API_KEY not set! Run: export OPENWEATHERMAP_API_KEY='your-weather-key'")
     exit(1)
 
+# Get current username dynamically
+try:
+    CURRENT_USER = os.getlogin()
+except OSError:
+    CURRENT_USER = os.environ.get("USER", "unknown")  # Fallback if getlogin fails
+print(f"Running as user: {CURRENT_USER}")
+
+# Load spaCy model
+try:
+    nlp = spacy.load("en_core_web_sm")
+    print("spaCy model loaded successfully.")
+except Exception as e:
+    print(f"Error loading spaCy model: {e}")
+    exit(1)
+
+# Default weather ZIP code (fallback if no ZIP detected)
+DEFAULT_WEATHER_ZIP = os.getenv("WEATHER_ZIP", "90210")  # Default to Beverly Hills, CA—set via env var
+
 # Audio settings
-BLOCK_SIZE = 512  # Smaller block size for lower latency
-SAMPLE_RATE = 16000  # Whisper’s expected rate
-CHANNELS = 1  # Mono audio
+BLOCK_SIZE = 512
+SAMPLE_RATE = 16000
+CHANNELS = 1
+max_duration = 10
+max_samples = SAMPLE_RATE * max_duration
 
 # List JSON files in the themes/ directory
 theme_files = [f for f in os.listdir('themes') if f.endswith('.json')]
@@ -38,7 +65,7 @@ if not themes:
     print("Error: No themes found in the themes/ directory.")
     exit(1)
 
-print(f"{NAME} - Available themes:")
+print("Available themes:")
 for i, theme in enumerate(themes, 1):
     print(f"{i}. {theme}".title())
 
@@ -80,36 +107,38 @@ except ValueError:
     exit(1)
 
 # Audio recording setup
-max_duration = 10  # seconds
 max_frames = int(SAMPLE_RATE * max_duration / BLOCK_SIZE)
-audio_frames = np.zeros((max_frames, BLOCK_SIZE, CHANNELS), dtype=np.float32)  # Match indata shape
+audio_frames = np.zeros((max_frames, BLOCK_SIZE, CHANNELS), dtype=np.float32)
 frame_count = 0
 is_recording = False
 running = True
-max_samples = SAMPLE_RATE * max_duration
 conversation_history = []
-current_playback_process = None  # Track ongoing audio playback
+current_playback_process = None
 
-# Environment for audio playback (PulseAudio as user h4xb0t)
+# Environment for audio playback (PulseAudio)
 env = os.environ.copy()
-env["XDG_RUNTIME_DIR"] = "/run/user/1000"  # Adjust UID if needed
+env["XDG_RUNTIME_DIR"] = "/run/user/1000"
 env["PULSE_SERVER"] = "unix:/run/user/1000/pulse/native"
 
 # Callback for audio input
 def callback(indata, frames, time_, status):
     global frame_count
     if is_recording and frame_count < max_frames:
-        audio_frames[frame_count] = indata  # Direct assignment, shapes match
+        audio_frames[frame_count] = indata
         frame_count += 1
 
 # Initialize audio stream
-stream = sd.InputStream(
-    samplerate=SAMPLE_RATE,
-    channels=CHANNELS,
-    blocksize=BLOCK_SIZE,
-    callback=callback
-)
-stream.start()  # Start the stream once and keep it running
+try:
+    stream = sd.InputStream(
+        samplerate=SAMPLE_RATE,
+        channels=CHANNELS,
+        blocksize=BLOCK_SIZE,
+        callback=callback
+    )
+    stream.start()
+except Exception as e:
+    print(f"Error initializing audio stream: {e}")
+    exit(1)
 
 def speak_response(text):
     """Generate and play audio response with silence pre-roll."""
@@ -125,10 +154,10 @@ def speak_response(text):
         with open("output.wav", "wb") as f:
             f.write(response.content)
 
-        # Play silence pre-roll if it exists (no process tracking here)
+        # Play silence pre-roll if it exists
         if os.path.exists("silence.wav"):
             silence_process = subprocess.Popen(
-                ["sudo", "-E", "-u", "h4xb0t", "paplay", "silence.wav"],
+                ["sudo", "-E", "-u", CURRENT_USER, "paplay", "silence.wav"],
                 env=env
             )
             silence_process.wait()
@@ -137,12 +166,62 @@ def speak_response(text):
 
         # Play the actual TTS audio asynchronously
         current_playback_process = subprocess.Popen(
-            ["sudo", "-E", "-u", "h4xb0t", "paplay", "output.wav"],
+            ["sudo", "-E", "-u", CURRENT_USER, "paplay", "output.wav"],
             env=env
         )
-        # Don’t wait—let it play in the background so it can be interrupted
     except Exception as e:
         print(f"Error in audio playback: {e}")
+
+def get_weather(text):
+    """Fetch weather data from OpenWeatherMap with ZIP code detection."""
+    api_key = OPENWEATHERMAP_API_KEY
+    # Use spaCy to extract ZIP code from text
+    doc = nlp(text.lower())
+    zip_code = None
+    for ent in doc.ents:
+        if ent.label_ == "CARDINAL" and ent.text.isdigit() and len(ent.text) == 5:  # Assuming 5-digit ZIP
+            zip_code = ent.text
+            break
+    
+    # Fallback to default ZIP if no ZIP code found
+    if not zip_code:
+        zip_code = DEFAULT_WEATHER_ZIP
+        print(f"No ZIP code detected, using default: {zip_code}")
+
+    url = f"http://api.openweathermap.org/data/2.5/weather?zip={zip_code},us&appid={api_key}&units=imperial"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        weather = data['weather'][0]['description']
+        temp = data['main']['temp']
+        city = data['name']  # Get city name from response for clarity
+        return f"The weather in {city} (ZIP {zip_code}) is {weather} with a temp of {temp}°F."
+    except requests.RequestException:
+        return f"Can’t fetch weather for ZIP {zip_code} right now, fam."
+
+def chat_with_gpt(prompt):
+    """Get response from ChatGPT with custom theme instructions."""
+    try:
+        system_message = {"role": "system", "content": theme_config["system_message"]}
+        messages = [system_message] + conversation_history + [{"role": "user", "content": prompt}]
+        response = openai.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=messages
+        )
+        return response.choices[0].message.content
+    except openai.OpenAIError as err:
+        print(f"OpenAI API error: {err}")
+        return None
+
+def process_input(text):
+    """Process input with spaCy for intent recognition."""
+    doc = nlp(text.lower())
+    weather_keywords = ["weather", "temperature", "forecast", "rain", "sunny"]
+    if any(keyword in doc.text for keyword in weather_keywords):
+        return get_weather(text)
+    else:
+        return chat_with_gpt(text)
 
 def on_key_event(e):
     """Handle Left Shift key events for push-to-talk, Q to exit."""
@@ -162,14 +241,14 @@ def on_key_event(e):
             is_recording = False
             print("Processing...")
             if frame_count > 0:
-                audio_data = audio_frames[:frame_count].reshape(-1, CHANNELS).flatten()  # Flatten to 1D
+                audio_data = audio_frames[:frame_count].reshape(-1, CHANNELS).flatten()
                 if len(audio_data) > max_samples:
                     audio_data = audio_data[-max_samples:]
                 audio_data = audio_data.astype(np.float32)
                 transcribed_text = whisper_model.transcribe(audio_data)["text"]
                 print(f"Transcribed: '{transcribed_text}'")
                 if transcribed_text.strip():
-                    gpt_response = chat_with_gpt(transcribed_text)
+                    gpt_response = process_input(transcribed_text)
                     if gpt_response:
                         print(f"🤖 {theme_config['theme_name'].replace('_', ' ').title()} AI: {gpt_response}")
                         speak_response(gpt_response)
@@ -181,20 +260,6 @@ def on_key_event(e):
     elif e.name == 'q' and e.event_type == keyboard.KEY_DOWN:  # Exit key
         print("Q key pressed—shutting down...")
         running = False
-
-def chat_with_gpt(prompt):
-    """Get response from ChatGPT with custom theme instructions."""
-    try:
-        system_message = {"role": "system", "content": theme_config["system_message"]}
-        messages = [system_message] + conversation_history + [{"role": "user", "content": prompt}]
-        response = openai.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=messages
-        )
-        return response.choices[0].message.content
-    except openai.OpenAIError as err:
-        print(f"OpenAI API error: {err}")
-        return None
 
 def generate_intro():
     """Generate a custom theme-based intro from ChatGPT."""
@@ -232,5 +297,4 @@ if current_playback_process and current_playback_process.poll() is None:
 stream.stop()
 stream.close()
 keyboard.unhook_all()
-print(f"{NAME} offline.")
-
+print(f"{theme_config['theme_name'].replace('_', ' ').title()} AI offline.")
