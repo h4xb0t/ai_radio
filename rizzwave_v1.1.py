@@ -16,8 +16,8 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcribe")
 
 # Script version and name
-VERSION = "1.0"
-NAME = "RizzWave v1.0 AI HAM RADIO"
+VERSION = "1.1"
+NAME = "RizzWave v1.1 AI HAM RADIO"
 
 # Load API keys from environment variables
 openai.api_key = os.getenv("OPENAI_API_KEY")
