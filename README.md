@@ -65,16 +65,17 @@ The RizzWave v1.1 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
    python -m spacy download en_core_web_sm
    ```
 
-4. **Set Your API Keys**:
+4. **Set Your API Keys and Zip Code**:
    ```bash
    export OPENAI_API_KEY='your-openai-key'
    export OPENWEATHERMAP_API_KEY='your-openweathermap-key'
+   export WEATHER_ZIP='your-us-zip-code'
    ```
 
 5. **Generate Theme Files**:
    Run the theme generator to populate the `themes/` directory:
    ```bash
-   python generate_themes_v1.5.py
+   python generate_themes.py
    ```
 
 6. **Generate `silence.wav`** (For latency reduction):
