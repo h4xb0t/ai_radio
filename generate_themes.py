@@ -74,4 +74,4 @@ for theme in themes:
         json.dump(theme, f, indent=4, ensure_ascii=False)
     print(f"Generated theme file: {filename}")
 
-print("All theme files generated successfully for Terminal v1.5!")
+print("All theme files generated successfully for Rizzwave!")
