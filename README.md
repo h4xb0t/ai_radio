@@ -30,6 +30,11 @@ The RizzWave v1.1 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
 - **Voice Interaction**: Hold Left Shift to record (max 10s), transcribed by Whisper, with AI responses via ChatGPT.
 - **Text-to-Speech**: Hear themed replies with OpenAI’s TTS voices (e.g., "onyx", "nova").
 - **Intent Recognition**: Uses spaCy to route weather queries to OpenWeatherMap and general queries to OpenAI.
+- **Weather Integration**: 
+  - Real-time weather updates powered by the OpenWeatherMap API.
+  - Ask naturally (e.g., "What’s the weather in 90210?")—spaCy detects the intent and extracts ZIP codes for precise, location-based data.
+  - No ZIP provided? Falls back to a default ZIP code set via an environment variable.
+  - Temperature reported in Fahrenheit for that classic American radio vibe.
 - **Customizable**: Add your own themes with ease.
 - **Lightweight**: Runs on a Raspberry Pi with minimal setup.
 
@@ -65,17 +70,16 @@ The RizzWave v1.1 AI HAM RADIO turns your Raspberry Pi into a voice-activated AI
    python -m spacy download en_core_web_sm
    ```
 
-4. **Set Your API Keys and Zip Code**:
+4. **Set Your API Keys**:
    ```bash
    export OPENAI_API_KEY='your-openai-key'
    export OPENWEATHERMAP_API_KEY='your-openweathermap-key'
-   export WEATHER_ZIP='your-us-zip-code'
    ```
 
 5. **Generate Theme Files**:
    Run the theme generator to populate the `themes/` directory:
    ```bash
-   python generate_themes.py
+   python generate_themes_v1.5.py
    ```
 
 6. **Generate `silence.wav`** (For latency reduction):
@@ -147,10 +151,21 @@ See [PulseAudio docs](https://www.freedesktop.org/wiki/Software/PulseAudio/Docum
 
 ## Future Enhancements
 
-- **Hardware Case**: Build a retro ham radio-inspired enclosure.
-- **More Themes**: Expand the theme library or tweak voices on the fly.
-- **API Add-ons**: Pull live data (e.g., weather) into responses.
-- **User Profiles**: Save settings for multiple users.
+Here are some cool ideas to take RizzWave to the next level:
+
+- **Multi-Language Support**: Add support for multiple languages to reach a global audience.
+- **Voice Customization**: Let users pick or tweak the AI’s voice—think pitch sliders or custom voice synthesis.
+- **Hardware Integration**: Design a retro ham radio-inspired case with physical knobs for volume, theme switching, or frequency vibes.
+- **Advanced Intent Recognition**: Upgrade to cutting-edge NLP models for better intent handling and conversational depth.
+- **User Profiles**: Save preferences, chat history, and settings per user for a personalized experience.
+- **API Expansion**: Hook into APIs for news, sports scores, stock updates, or even ham radio frequency data.
+- **Voice Commands for System Control**: Say "Switch to Fallout" or "Turn up the volume" to control the system hands-free.
+- **Interactive Storytelling**: Build voice-driven games or stories—like a post-apocalyptic radio drama where users make choices.
+- **Community Themes**: Let users upload and share themes on a public repo, growing a RizzWave creator community.
+- **AI DJ Mode**: Have the AI curate and narrate a playlist based on weather, mood, or theme, with radio-style transitions.
+- **Ham Radio Bridge**: Connect to real ham radio networks, blending vintage comms with AI responses.
+
+Feel free to trim or tweak these—there’s plenty of room to dream big!
 
 ---
 
@@ -163,3 +178,4 @@ Fork the repo, add themes, or tweak features—pull requests are welcome! For bi
 ## Disclaimer
 
 This is a fun, experimental project—not for production use. It relies on third-party APIs and may need tweaks for different hardware.
+```
